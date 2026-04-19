@@ -1,12 +1,13 @@
 import socket
 import threading
-
+from auth import authenticate, init_db
 from auth import authenticate
 from admin import log, admin_console
 
 HOST = "0.0.0.0"
 PORT = 12345
 
+init_db()
 
 def make_server():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

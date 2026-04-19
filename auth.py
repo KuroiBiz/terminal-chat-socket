@@ -1,14 +1,87 @@
+import sqlite3
 import hashlib
 
-users = {}  # username -> password_hash
+DB = "users.db"
 
 
+# ------------------------
+# DB INIT
+# ------------------------
+def init_db():
+    conn = sqlite3.connect(DB)
+    cur = conn.cursor()
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        username TEXT PRIMARY KEY,
+        password TEXT NOT NULL
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
+
+# ------------------------
+# HASH
+# ------------------------
 def hash_pw(password: str) -> str:
     return hashlib.sha256(password.encode()).hexdigest()
 
 
+# ------------------------
+# USER OPS
+# ------------------------
+def user_exists(username):
+    conn = sqlite3.connect(DB)
+    cur = conn.cursor()
+
+    cur.execute("SELECT 1 FROM users WHERE username=?", (username,))
+    result = cur.fetchone()
+
+    conn.close()
+    return result is not None
+
+
+def register_user(username, password):
+    conn = sqlite3.connect(DB)
+    cur = conn.cursor()
+
+    try:
+        cur.execute(
+            "INSERT INTO users (username, password) VALUES (?, ?)",
+            (username, hash_pw(password))
+        )
+        conn.commit()
+        return True
+    except:
+        return False
+    finally:
+        conn.close()
+
+
+def verify_user(username, password):
+    conn = sqlite3.connect(DB)
+    cur = conn.cursor()
+
+    cur.execute(
+        "SELECT password FROM users WHERE username=?",
+        (username,)
+    )
+    row = cur.fetchone()
+    conn.close()
+
+    if not row:
+        return False
+
+    return row[0] == hash_pw(password)
+
+
+# ------------------------
+# AUTH FLOW
+# ------------------------
 def authenticate(client, send):
-    send(client, "[AUTH] Use: /login user pass  OR  /register user pass")
+    send(client, "[AUTH] Use: /login user pass OR /register user pass")
 
     while True:
         data = client.recv(1024)
@@ -18,7 +91,6 @@ def authenticate(client, send):
         cmd = data.decode().strip()
         parts = cmd.split()
 
-        # flexible parsing
         if len(parts) < 3:
             send(client, "[!] use: /login user pass")
             continue
@@ -28,20 +100,18 @@ def authenticate(client, send):
         password = " ".join(parts[2:])
 
         if action == "/register":
-            if username in users:
+            if user_exists(username):
                 send(client, "[-] username exists")
                 continue
 
-            users[username] = hash_pw(password)
-            send(client, "[+] registered. now login")
+            if register_user(username, password):
+                send(client, "[+] registered. now login")
+            else:
+                send(client, "[-] register failed")
 
         elif action == "/login":
-            if username not in users:
-                send(client, "[-] no such user")
-                continue
-
-            if users[username] != hash_pw(password):
-                send(client, "[-] wrong password")
+            if not verify_user(username, password):
+                send(client, "[-] invalid credentials")
                 continue
 
             send(client, "[+] login success")
