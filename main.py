@@ -3,11 +3,13 @@ import threading
 from auth import authenticate, init_db
 from auth import authenticate
 from admin import log, admin_console
+from msg import init_msg_db, save_message, get_last_messages
 
 HOST = "0.0.0.0"
 PORT = 12345
 
 init_db()
+init_msg_db()
 
 def make_server():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -63,6 +65,11 @@ def handle(client):
     # 🔧 2. clean join separator
     broadcast(f"\n[+] {username} joined\n".encode())
 
+    history = get_last_messages(10)
+
+    for user, msg, ts in history:
+        send(client, f"[{ts}] {user}: {msg}")
+
     try:
         while True:
             data = client.recv(1024)
@@ -70,6 +77,10 @@ def handle(client):
                 break
 
             msg = data.decode().strip()
+
+            # store message
+            save_message(username, msg)
+
             log(f"{username}: {msg}")
             broadcast(f"[{username}] {msg}\n".encode(), sender=client)
 
