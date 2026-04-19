@@ -40,11 +40,26 @@ def admin_console(clients, broadcast):
             broadcast(f"[SERVER] {msg}\n".encode())
             log(f"SERVER: {msg}")
 
+        # 🔧 3. Kick command
+        elif cmd.startswith("kick "):
+            target = cmd.split()[1]
+
+            for c, name in list(clients.items()):
+                if name == target:
+                    try:
+                        c.sendall(b"[SERVER] you were kicked\n")
+                    except:
+                        pass
+                    c.close()
+                    clients.pop(c, None)
+                    log(f"{target} kicked")
+
         elif cmd == "help":
             print("""
 status  → show users
 logs    → show logs
 say msg → broadcast
+kick u  → kick user
 help    → commands
 """)
 

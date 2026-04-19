@@ -32,15 +32,15 @@ def receive():
             if "[+] login success" in msg:
                 authenticated = True
 
-            # styling
+            # styling + auto-scroll feel
             if msg.startswith("[+]"):
-                console.print(msg, style="bold green")
+                console.print("\n" + msg, style="bold green")
             elif msg.startswith("[-]"):
-                console.print(msg, style="bold red")
+                console.print("\n" + msg, style="bold red")
             elif msg.startswith("[AUTH]") or msg.startswith("[!]"):
-                console.print(msg, style="bold yellow")
+                console.print("\n" + msg, style="bold yellow")
             else:
-                console.print(msg, style="cyan")
+                console.print("\n" + msg, style="cyan")
 
         except:
             break
@@ -61,7 +61,12 @@ while True:
         if text == "/quit":
             break
 
-        # track username after login command
+        # 🔧 1. Lock chat until login
+        if not authenticated and not text.startswith("/"):
+            console.print("login first", style="bold red")
+            continue
+
+        # track username
         if text.startswith("/login"):
             parts = text.split()
             if len(parts) >= 2:

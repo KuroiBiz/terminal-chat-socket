@@ -17,7 +17,7 @@ def make_server():
 
 
 server = make_server()
-clients = {}  # socket -> username
+clients = {}
 
 
 # ------------------------
@@ -50,7 +50,6 @@ def handle(client):
         client.close()
         return
 
-    # prevent duplicate login
     if username in clients.values():
         send(client, "[-] already online")
         client.close()
@@ -59,7 +58,9 @@ def handle(client):
     clients[client] = username
 
     log(f"{username} joined")
-    broadcast(f"[+] {username} joined\n".encode())
+
+    # 🔧 2. clean join separator
+    broadcast(f"\n[+] {username} joined\n".encode())
 
     try:
         while True:
@@ -76,7 +77,7 @@ def handle(client):
         clients.pop(client, None)
 
         log(f"{name} left")
-        broadcast(f"[-] {name} left\n".encode())
+        broadcast(f"\n[-] {name} left\n".encode())
         client.close()
 
 
