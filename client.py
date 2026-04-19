@@ -13,7 +13,8 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect((HOST, PORT))
 
 name = Prompt.ask("[bold green]Enter your handle[/]")
-client.sendall((name + "\n").encode())
+
+console.print("[bold magenta]Use /login or /register[/]")
 
 def receive():
     while True:
