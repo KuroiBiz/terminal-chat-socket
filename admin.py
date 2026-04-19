@@ -13,10 +13,8 @@ def log(msg):
 def show_status(clients):
     print("\n--- STATUS ---")
     print(f"Active clients: {len(clients)}")
-
     for name in clients.values():
         print(f" - {name}")
-
     print("--------------\n")
 
 

@@ -1,8 +1,6 @@
 import socket
 import threading
 from rich.console import Console
-from rich.prompt import Prompt
-from rich.text import Text
 
 HOST = "127.0.0.1"
 PORT = 12345
@@ -12,39 +10,68 @@ console = Console()
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect((HOST, PORT))
 
-name = Prompt.ask("[bold green]Enter your handle[/]")
+username = None
+authenticated = False
 
-console.print("[bold magenta]Use /login or /register[/]")
 
+# ------------------------
+# RECEIVE THREAD
+# ------------------------
 def receive():
+    global authenticated
+
     while True:
         try:
             data = client.recv(1024)
             if not data:
                 break
-            msg = data.decode()
 
-            # simple styling rules
+            msg = data.decode().strip()
+
+            # detect login success
+            if "[+] login success" in msg:
+                authenticated = True
+
+            # styling
             if msg.startswith("[+]"):
-                console.print(msg.strip(), style="bold green")
+                console.print(msg, style="bold green")
             elif msg.startswith("[-]"):
-                console.print(msg.strip(), style="bold red")
+                console.print(msg, style="bold red")
+            elif msg.startswith("[AUTH]") or msg.startswith("[!]"):
+                console.print(msg, style="bold yellow")
             else:
-                console.print(msg.strip(), style="cyan")
+                console.print(msg, style="cyan")
 
         except:
             break
 
+
 threading.Thread(target=receive, daemon=True).start()
 
-console.print("[bold magenta]Connected. Type /quit to exit[/]")
+
+# ------------------------
+# INPUT LOOP
+# ------------------------
+console.print("[bold magenta]Use /login or /register[/]")
 
 while True:
-    text = console.input("[bold yellow]> [/]")
-    if text.strip() == "/quit":
+    try:
+        text = console.input("[bold yellow]> [/]").strip()
+
+        if text == "/quit":
+            break
+
+        # track username after login command
+        if text.startswith("/login"):
+            parts = text.split()
+            if len(parts) >= 2:
+                username = parts[1]
+
+        client.sendall((text + "\n").encode())
+
+    except KeyboardInterrupt:
         break
 
-    payload = f"[{name}] {text}\n"
-    client.sendall(payload.encode())
 
 client.close()
+console.print("[bold red]Disconnected[/]")

@@ -7,10 +7,16 @@ from admin import log, admin_console
 HOST = "0.0.0.0"
 PORT = 12345
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind((HOST, PORT))
-server.listen()
 
+def make_server():
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.bind((HOST, PORT))
+    s.listen(128)
+    return s
+
+
+server = make_server()
 clients = {}  # socket -> username
 
 
@@ -86,5 +92,13 @@ threading.Thread(
 log("Server running...")
 
 while True:
-    client, _ = server.accept()
-    threading.Thread(target=handle, args=(client,), daemon=True).start()
+    try:
+        client, _ = server.accept()
+        threading.Thread(target=handle, args=(client,), daemon=True).start()
+    except OSError as e:
+        log(f"[accept error] {e}")
+        try:
+            server.close()
+        except:
+            pass
+        server = make_server()

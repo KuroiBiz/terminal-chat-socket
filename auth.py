@@ -8,7 +8,7 @@ def hash_pw(password: str) -> str:
 
 
 def authenticate(client, send):
-    send(client, "[AUTH] /login user pass  OR  /register user pass")
+    send(client, "[AUTH] Use: /login user pass  OR  /register user pass")
 
     while True:
         data = client.recv(1024)
@@ -18,11 +18,14 @@ def authenticate(client, send):
         cmd = data.decode().strip()
         parts = cmd.split()
 
-        if len(parts) != 3:
-            send(client, "[!] invalid format")
+        # flexible parsing
+        if len(parts) < 3:
+            send(client, "[!] use: /login user pass")
             continue
 
-        action, username, password = parts
+        action = parts[0]
+        username = parts[1]
+        password = " ".join(parts[2:])
 
         if action == "/register":
             if username in users:
