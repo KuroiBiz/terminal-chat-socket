@@ -65,6 +65,11 @@ TCP-based chat system with:
 
 ---
 
+## 🎥 Demo
+
+![Demo](./demo.gif)
+---
+
 ## 🌐 Network
 
 Local:

@@ -1,0 +1,4 @@
+{"version": 2, "width": 100, "height": 4, "timestamp": 1777290541, "env": {"SHELL": "/bin/bash", "TERM": "xterm-256color"}}
+[0.04117, "o", "\u001b[?2004h\u001b]0;akirosato@Akiro: ~/CODING!/terminal-chat-socket\u0007\u001b[1;35makirosato\u001b[0m@\u001b[1;36mAkiro\u001b[0m:\u001b[1;32m~/CODING!/terminal-chat-socket\u001b[0m\r\r\n\u001b[1;32m$\u001b[0m "]
+[104.08401, "o", "\u001b[?2004l\r\r\n"]
+[104.084692, "o", "exit\r\n"]
